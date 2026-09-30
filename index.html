@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Piolin — real-time intonation feedback for violin." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎻</text></svg>" />
+    <title>Piolin</title>
+  </head>
+  <body>
+    <header>
+      <h1>Pi<span>olin</span></h1>
+      <p class="tagline">Pitch + violin: are you in tune?</p>
+      <p class="demo-banner">Demo mode: a synthetic tone with vibrato stands in for the microphone.</p>
+    </header>
+
+    <main>
+      <section id="tuner" class="tuner" data-active="false" aria-live="polite"></section>
+
+      <button id="start" class="start">Start</button>
+
+      <section class="settings" aria-label="Settings">
+        <div class="field">
+          <span class="field-label">Level</span>
+          <div class="segmented" role="group" aria-label="Level">
+            <button data-level="beginner">Beginner</button>
+            <button data-level="intermediate">Intermediate</button>
+            <button data-level="advanced">Advanced</button>
+          </div>
+          <p id="level-hint" class="hint"></p>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">Tolerance <output id="tolerance-value"></output></span>
+            <input id="tolerance" type="range" min="3" max="40" step="1" />
+          </label>
+          <label class="field narrow">
+            <span class="field-label">Reference A (Hz)</span>
+            <input id="reference-a" type="number" min="400" max="480" step="1" inputmode="numeric" />
+          </label>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Audio is analysed live in your browser and never recorded or uploaded.
+      <a href="https://github.com/lenasalz/piolin">Source on GitHub</a>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
