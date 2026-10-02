@@ -168,7 +168,6 @@ main {
   border-radius: 3px;
   background: var(--text);
   box-shadow: 0 0 0 2px var(--surface);
-  transition: left 0.08s linear;
 }
 
 .tuner-label {

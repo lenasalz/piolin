@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { detectPitch } from './pitch';
 
 const SAMPLE_RATE = 48000;
-const SIZE = 2048;
+const SIZE = 1024;
 
 function centsBetween(a: number, b: number): number {
   return 1200 * Math.log2(a / b);

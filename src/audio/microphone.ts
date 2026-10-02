@@ -8,7 +8,7 @@ export interface Microphone {
   stop(): Promise<void>;
 }
 
-export const FRAME_SIZE = 2048;
+export const FRAME_SIZE = 1024;
 
 export async function openMicrophone(): Promise<Microphone> {
   const stream = await navigator.mediaDevices.getUserMedia({
@@ -31,35 +31,81 @@ export async function openMicrophone(): Promise<Microphone> {
   };
 }
 
+/** The demo phrase, up the A string: some notes in tune, some not, some with vibrato. */
+const DEMO_PHRASE = [
+  { midi: 69, cents: 12, vibrato: true }, // A4, a little sharp
+  { midi: 71, cents: -18, vibrato: false }, // B4, flat
+  { midi: 73, cents: 3, vibrato: true }, // C♯5, in tune
+  { midi: 74, cents: 30, vibrato: false }, // D5, clearly sharp
+  { midi: 76, cents: -6, vibrato: true }, // E5, in tune
+  { midi: 74, cents: 0, vibrato: false }, // D5, in tune
+];
+const DEMO_NOTE_S = 1.4;
+/** Silence between notes, like a bow change. */
+const DEMO_GAP_S = 0.15;
+const DEMO_VIBRATO_CENTS = 30;
+
 /**
- * A silent synthetic input for trying the app without a violin (open with ?demo):
- * a sawtooth (rich in overtones, like a bowed string) with 6 Hz vibrato.
+ * A synthetic input for trying the app without a violin (open with ?demo): a
+ * looping phrase played through the speakers and fed to the tuner. The tone is
+ * a filtered sawtooth (rich in overtones, like a bowed string) with 6 Hz vibrato
+ * on some notes.
  */
-export async function openDemoTone(frequency: number): Promise<Microphone> {
+export async function openDemo(referenceA: number): Promise<Microphone> {
   const context = new AudioContext();
   await context.resume();
 
   const tone = context.createOscillator();
   tone.type = 'sawtooth';
-  tone.frequency.value = frequency;
-
   const vibrato = context.createOscillator();
   vibrato.frequency.value = 6;
   const vibratoDepth = context.createGain();
-  vibratoDepth.gain.value = frequency * (2 ** (30 / 1200) - 1); // ±30 cents
   vibrato.connect(vibratoDepth).connect(tone.frequency);
 
-  const volume = context.createGain();
-  volume.gain.value = 0.3;
+  const filter = context.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 4000;
+  const envelope = context.createGain();
+  envelope.gain.value = 0;
   const analyser = context.createAnalyser();
   analyser.fftSize = FRAME_SIZE;
-  tone.connect(volume).connect(analyser);
+  const speaker = context.createGain();
+  speaker.gain.value = 0.15;
+  tone.connect(filter).connect(envelope);
+  envelope.connect(analyser);
+  envelope.connect(speaker).connect(context.destination);
+
+  const play = (note: (typeof DEMO_PHRASE)[number], at: number) => {
+    const frequency = referenceA * 2 ** ((note.midi - 69 + note.cents / 100) / 12);
+    const release = at + DEMO_NOTE_S - DEMO_GAP_S;
+    tone.frequency.setValueAtTime(frequency, at);
+    vibratoDepth.gain.setValueAtTime(note.vibrato ? frequency * (2 ** (DEMO_VIBRATO_CENTS / 1200) - 1) : 0, at);
+    envelope.gain.setValueAtTime(0, at);
+    envelope.gain.linearRampToValueAtTime(0.3, at + 0.04);
+    envelope.gain.setValueAtTime(0.3, release - 0.06);
+    envelope.gain.linearRampToValueAtTime(0, release);
+  };
+
+  // Schedule notes a little ahead of time so timer hiccups can't be heard.
+  let index = 0;
+  let next = context.currentTime + 0.1;
+  const scheduleAhead = () => {
+    while (next < context.currentTime + 1) {
+      play(DEMO_PHRASE[index++ % DEMO_PHRASE.length], next);
+      next += DEMO_NOTE_S;
+    }
+  };
+  scheduleAhead();
+  const timer = setInterval(scheduleAhead, 250);
   tone.start();
   vibrato.start();
 
   return {
     sampleRate: context.sampleRate,
     read: (buffer) => analyser.getFloatTimeDomainData(buffer),
-    stop: () => context.close(),
+    stop: () => {
+      clearInterval(timer);
+      return context.close();
+    },
   };
 }

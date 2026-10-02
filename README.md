@@ -32,7 +32,7 @@ npm run dev
 Open the printed URL (usually http://localhost:5173), press **Start**, and allow microphone access.
 Works in Safari, Chrome and Firefox.
 
-No violin at hand? Open http://localhost:5173/?demo to use a synthetic tone with vibrato instead of the microphone.
+No violin at hand? Open http://localhost:5173/?demo: a synthetic violin plays a short looping phrase (some notes in tune, some not, some with vibrato) through your speakers, and the tuner listens to it instead of the microphone.
 
 | Command | What it does |
 |---|---|
@@ -43,7 +43,7 @@ No violin at hand? Open http://localhost:5173/?demo to use a synthetic tone with
 ## How it works
 
 - **Pitch detection** ([src/audio/pitch.ts](src/audio/pitch.ts)): the McLeod Pitch Method, which handles the strong overtones of a bowed string and rarely jumps an octave. High notes are refined over several periods for sub-cent accuracy.
-- **Smoothing** ([src/audio/smoothing.ts](src/audio/smoothing.ts)): the midpoint between the highest and lowest pitch over a short window, which finds the vibrato centre at any vibrato speed. One-frame glitches are ignored.
+- **Smoothing** ([src/audio/smoothing.ts](src/audio/smoothing.ts)): vibrato is recognised by its peaks and troughs, and judged by the midpoint of the latest pair, which is exact at any vibrato speed. Steady notes skip this and respond within about 50 ms. One-frame glitches are ignored.
 - **Microphone** ([src/audio/microphone.ts](src/audio/microphone.ts)): the browser's speech processing (noise suppression, echo cancellation, auto gain) is turned off, since it distorts a violin.
 
 Notes are compared with equal temperament. Expressive intonation (e.g. high leading tones) will therefore show as small deviations.

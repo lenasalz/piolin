@@ -7,26 +7,22 @@ export interface LevelPreset {
   label: string;
   /** A note counts as "in tune" within ± this many cents. */
   toleranceCents: number;
-  /** Pitch averaging window; long enough to find the centre of vibrato. */
-  smoothingMs: number;
 }
 
 export const LEVEL_PRESETS: Record<Level, LevelPreset> = {
-  beginner: { label: 'Beginner', toleranceCents: 25, smoothingMs: 400 },
-  intermediate: { label: 'Intermediate', toleranceCents: 15, smoothingMs: 250 },
-  advanced: { label: 'Advanced', toleranceCents: 8, smoothingMs: 250 },
+  beginner: { label: 'Beginner', toleranceCents: 25 },
+  intermediate: { label: 'Intermediate', toleranceCents: 15 },
+  advanced: { label: 'Advanced', toleranceCents: 8 },
 };
 
 export interface Settings {
   level: Level;
   referenceA: number;
   toleranceCents: number;
-  smoothingMs: number;
 }
 
 export function settingsForLevel(level: Level, referenceA: number): Settings {
-  const { toleranceCents, smoothingMs } = LEVEL_PRESETS[level];
-  return { level, referenceA, toleranceCents, smoothingMs };
+  return { level, referenceA, toleranceCents: LEVEL_PRESETS[level].toleranceCents };
 }
 
 export const DEFAULT_SETTINGS: Settings = settingsForLevel('intermediate', 442);

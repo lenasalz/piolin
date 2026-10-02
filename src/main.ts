@@ -1,5 +1,5 @@
 import './style.css';
-import { FRAME_SIZE, openDemoTone, openMicrophone, type Microphone } from './audio/microphone';
+import { FRAME_SIZE, openDemo, openMicrophone, type Microphone } from './audio/microphone';
 import { detectPitch } from './audio/pitch';
 import { PitchSmoother } from './audio/smoothing';
 import { describePitch, frequencyToMidi, midiToFrequency } from './music/notes';
@@ -12,7 +12,7 @@ const SILENCE_MS = 200;
 
 let settings: Settings = loadSettings();
 const tuner = new TunerView(document.querySelector<HTMLElement>('#tuner')!);
-const smoother = new PitchSmoother(settings.smoothingMs);
+const smoother = new PitchSmoother();
 
 const startButton = document.querySelector<HTMLButtonElement>('#start')!;
 const levelButtons = document.querySelectorAll<HTMLButtonElement>('[data-level]');
@@ -24,7 +24,6 @@ const levelHint = document.querySelector<HTMLElement>('#level-hint')!;
 function applySettings(next: Settings): void {
   settings = next;
   saveSettings(settings);
-  smoother.windowMs = settings.smoothingMs;
   smoother.reset();
   tuner.setTolerance(settings.toleranceCents);
 
@@ -64,8 +63,7 @@ let lastHeard = 0;
 async function start(): Promise<void> {
   startButton.disabled = true;
   try {
-    // The demo plays A4 slightly sharp so the needle has something to show.
-    input = DEMO ? await openDemoTone(midiToFrequency(69.12, settings.referenceA)) : await openMicrophone();
+    input = DEMO ? await openDemo(settings.referenceA) : await openMicrophone();
   } catch (error) {
     tuner.idle(
       error instanceof DOMException && error.name === 'NotAllowedError'
