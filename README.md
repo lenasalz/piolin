@@ -2,6 +2,10 @@
 
 **Pitch + violin.** A browser app that listens while you play the violin and tells you, in real time, whether you are in tune.
 
+[![Tests](https://github.com/lenasalz/piolin/actions/workflows/deploy.yml/badge.svg)](https://github.com/lenasalz/piolin/actions/workflows/deploy.yml)
+
+**[Try it live](https://lenasalz.github.io/piolin/)**, or **[hear the demo](https://lenasalz.github.io/piolin/?demo)** without a violin: a synthetic violin plays through your speakers (choose the minuet under *Play along* and press *Start*).
+
 > Status: early development. The tuner works, and you can play along with sheet music in wait mode.
 
 ## Features
