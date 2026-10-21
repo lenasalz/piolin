@@ -31,27 +31,34 @@ export async function openMicrophone(): Promise<Microphone> {
   };
 }
 
-/** The demo phrase, up the A string: some notes in tune, some not, some with vibrato. */
-const DEMO_PHRASE = [
-  { midi: 69, cents: 12, vibrato: true }, // A4, a little sharp
-  { midi: 71, cents: -18, vibrato: false }, // B4, flat
-  { midi: 73, cents: 3, vibrato: true }, // C♯5, in tune
-  { midi: 74, cents: 30, vibrato: false }, // D5, clearly sharp
-  { midi: 76, cents: -6, vibrato: true }, // E5, in tune
-  { midi: 74, cents: 0, vibrato: false }, // D5, in tune
+export interface DemoNote {
+  midi: number;
+  /** How far off the demo plays it. */
+  cents: number;
+  vibrato: boolean;
+  seconds: number;
+}
+
+/** The default demo phrase, up the A string: some notes in tune, some not, some with vibrato. */
+export const DEMO_PHRASE: DemoNote[] = [
+  { midi: 69, cents: 12, vibrato: true, seconds: 1.4 }, // A4, a little sharp
+  { midi: 71, cents: -18, vibrato: false, seconds: 1.4 }, // B4, flat
+  { midi: 73, cents: 3, vibrato: true, seconds: 1.4 }, // C♯5, in tune
+  { midi: 74, cents: 30, vibrato: false, seconds: 1.4 }, // D5, clearly sharp
+  { midi: 76, cents: -6, vibrato: true, seconds: 1.4 }, // E5, in tune
+  { midi: 74, cents: 0, vibrato: false, seconds: 1.4 }, // D5, in tune
 ];
-const DEMO_NOTE_S = 1.4;
-/** Silence between notes, like a bow change. */
+/** Longest silence between notes, like a bow change. */
 const DEMO_GAP_S = 0.15;
 const DEMO_VIBRATO_CENTS = 30;
 
 /**
  * A synthetic input for trying the app without a violin (open with ?demo): a
- * looping phrase played through the speakers and fed to the tuner. The tone is
- * a filtered sawtooth (rich in overtones, like a bowed string) with 6 Hz vibrato
- * on some notes.
+ * phrase played through the speakers and fed to the tuner, optionally looped.
+ * The tone is a filtered sawtooth (rich in overtones, like a bowed string) with
+ * 6 Hz vibrato on some notes.
  */
-export async function openDemo(referenceA: number): Promise<Microphone> {
+export async function openDemo(referenceA: number, phrase = DEMO_PHRASE, loop = true): Promise<Microphone> {
   const context = new AudioContext();
   await context.resume();
 
@@ -75,9 +82,9 @@ export async function openDemo(referenceA: number): Promise<Microphone> {
   envelope.connect(analyser);
   envelope.connect(speaker).connect(context.destination);
 
-  const play = (note: (typeof DEMO_PHRASE)[number], at: number) => {
+  const play = (note: DemoNote, at: number) => {
     const frequency = referenceA * 2 ** ((note.midi - 69 + note.cents / 100) / 12);
-    const release = at + DEMO_NOTE_S - DEMO_GAP_S;
+    const release = at + note.seconds - Math.min(DEMO_GAP_S, note.seconds / 4);
     tone.frequency.setValueAtTime(frequency, at);
     vibratoDepth.gain.setValueAtTime(note.vibrato ? frequency * (2 ** (DEMO_VIBRATO_CENTS / 1200) - 1) : 0, at);
     envelope.gain.setValueAtTime(0, at);
@@ -90,9 +97,10 @@ export async function openDemo(referenceA: number): Promise<Microphone> {
   let index = 0;
   let next = context.currentTime + 0.1;
   const scheduleAhead = () => {
-    while (next < context.currentTime + 1) {
-      play(DEMO_PHRASE[index++ % DEMO_PHRASE.length], next);
-      next += DEMO_NOTE_S;
+    while (next < context.currentTime + 1 && (loop || index < phrase.length)) {
+      const note = phrase[index++ % phrase.length];
+      play(note, next);
+      next += note.seconds;
     }
   };
   scheduleAhead();

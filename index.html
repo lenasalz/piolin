@@ -11,13 +11,30 @@
     <header>
       <h1>Pi<span>olin</span></h1>
       <p class="tagline">Pitch + violin: are you in tune?</p>
-      <p class="demo-banner">Demo mode: a synthetic violin plays a short phrase through your speakers instead of using the microphone.</p>
+      <p class="demo-banner">Demo mode: instead of the microphone, a synthetic violin plays through your speakers: the chosen piece (with some notes off), or a short phrase.</p>
     </header>
 
     <main>
       <section id="tuner" class="tuner" data-active="false" aria-live="polite"></section>
 
       <button id="start" class="start">Start</button>
+
+      <section class="piece" aria-label="Play along">
+        <div class="piece-bar">
+          <label class="field">
+            <span class="field-label">Play along</span>
+            <select id="piece">
+              <option value="">Nothing (tuner only)</option>
+              <option value="minuet">Minuet in G major (Petzold, attr. Bach)</option>
+              <option value="file">Open a MusicXML file…</option>
+            </select>
+          </label>
+          <button id="restart" class="secondary" hidden>Start over</button>
+        </div>
+        <input id="piece-file" type="file" accept=".musicxml,.xml,.mxl" hidden />
+        <p id="piece-status" class="piece-status" aria-live="polite" hidden></p>
+        <div id="score" class="score" hidden></div>
+      </section>
 
       <section class="settings" aria-label="Settings">
         <div class="field">

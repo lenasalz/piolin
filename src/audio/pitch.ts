@@ -7,6 +7,8 @@ export interface PitchResult {
   frequency: number;
   /** 0..1, how periodic the signal is. Bowed notes are typically > 0.9. */
   clarity: number;
+  /** Loudness (root mean square of the samples). */
+  rms: number;
 }
 
 export interface PitchDetectorOptions {
@@ -36,7 +38,8 @@ export function detectPitch(buffer: Float32Array, options: PitchDetectorOptions)
 
   let sumSquares = 0;
   for (let i = 0; i < n; i++) sumSquares += buffer[i] * buffer[i];
-  if (Math.sqrt(sumSquares / n) < rmsThreshold) return null;
+  const rms = Math.sqrt(sumSquares / n);
+  if (rms < rmsThreshold) return null;
 
   const minLag = Math.max(2, Math.floor(sampleRate / maxFrequency));
   const maxLag = Math.min(Math.ceil(sampleRate / minFrequency), Math.floor(n / 2));
@@ -86,7 +89,7 @@ export function detectPitch(buffer: Float32Array, options: PitchDetectorOptions)
     period = interpolatePeak(nsdf, peak).position / repeats;
   }
 
-  return { frequency: sampleRate / period, clarity };
+  return { frequency: sampleRate / period, clarity, rms };
 }
 
 /** Parabolic interpolation around a peak for sub-sample accuracy. */

@@ -86,6 +86,29 @@ main {
   margin-top: 24px;
 }
 
+/* With sheet music open, the page widens; on large screens the tuner sits beside the score. */
+body.has-score :is(header, main, footer) {
+  max-width: 1280px;
+}
+
+@media (min-width: 1000px) {
+  body.has-score main {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    align-items: start;
+  }
+
+  body.has-score .piece {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  body.has-score .tuner-note {
+    font-size: 4rem;
+  }
+}
+
 /* ---- Tuner ---- */
 
 .tuner {
@@ -186,6 +209,77 @@ main {
   color: var(--muted);
   font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
+}
+
+/* ---- Play along ---- */
+
+.piece {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.piece-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
+.piece-bar select {
+  max-width: 100%;
+}
+
+.piece-status {
+  margin: 0;
+  font-weight: 500;
+}
+
+.piece-status[data-tone='wrong'] {
+  color: var(--off);
+}
+
+/* Sheet music always sits on paper, also in dark mode. */
+.score {
+  --note-in-tune: #2f9e5b;
+  --note-close: #d99a1e;
+  --note-off: #d2493a;
+  min-height: 120px;
+  max-height: 70vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  border-radius: 10px;
+  background: #fffdf8;
+  color: #000;
+}
+
+/* OpenSheetMusicDisplay's cursor: a translucent band over the next note. */
+.score img[id^='cursorImg'] {
+  opacity: 0.35;
+}
+
+select {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.secondary {
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 /* ---- Controls ---- */
